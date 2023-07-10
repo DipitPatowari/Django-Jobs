@@ -178,11 +178,25 @@ def accept_job(request, app_pk):
     resume = Resume.objects.get(user = user)
     messages.info(request, f'You have accepted the application for {job.title} from {resume.first_name} {resume.surname}')
     
-    # notification to user who applied
+    # notification to applicant
     Notif.objects.create(
         user = user,
         content = f'CONGRATS! Your application for {job.title} has been accepted.'
     )
+
+    #email to recruiter
+    subject = 'Job accepted'
+    message = f'You have accepted the application from {resume.first_name} {resume.surname} for the role of {job.title}.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [job.user.email]
+    send_mail (subject , message , from_email , recipient_list)
+
+    #email to applicant
+    subject = f'Update on {job.title} job application'
+    message = f'Dear {resume.first_name} {resume.surname}, we are delighted to inform you that your application to {job.company} for the role of {job.title} has been ACCEPTED. You will be contacted by {job.company} soon. We wish you all the very best.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [user.email]
+    send_mail (subject , message , from_email , recipient_list)
     
     applied_jobs = ApplyJob.objects.filter(job = job)
     context = {'job':job, 'applied_jobs':applied_jobs}
@@ -204,6 +218,13 @@ def reject_job(request, app_pk):
         user = user,
         content = f'Sorry:( . Your application for {job.title} has been rejected.'
     )
+
+    #email to user who applied
+    subject = f'Update on {job.title} job application'
+    message = f'Dear {resume.first_name} {resume.surname}, we are very sorry to inform youthat your application to {job.company} for the role of {job.title} has been rejected. We wish you all the very best.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [user.email]
+    send_mail (subject , message , from_email , recipient_list)
 
     applied_jobs = ApplyJob.objects.filter(job = job)
     context = {'job':job, 'applied_jobs':applied_jobs}

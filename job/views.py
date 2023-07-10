@@ -140,11 +140,11 @@ def apply_to_job(request, pk):
         
 def all_applicants(request, pk):
     job = Job.objects.get(pk=pk)
-    applicants = job.applyjob_set.all()
-    # applicants = ApplyJob.objects.filter(job = job)
-    # for applicant in applicants:
+    # applicants = job.applyjob_set.all()
+    applied_jobs = ApplyJob.objects.filter(job = job)
+    # for applicant in applied_jobs:
     #     applicant = Resume.objects.get(user = applicant)
-    context = {'job':job, 'applicants':applicants}
+    context = {'job':job, 'applied_jobs':applied_jobs}
     return render(request, 'job/all_applicants.html', context)
 
 def applied_jobs(request):
@@ -167,3 +167,44 @@ def delete_application(request, job_pk):
     _delete_application(resume, application.id)
     messages.warning(request, 'Your application has been deleted')
     return redirect('dashboard')
+
+def accept_job(request, app_pk):
+    application = ApplyJob.objects.get(pk=app_pk)
+    application.status = 'Accepted'
+    application.save()
+    job = application.job
+    
+    user = application.user
+    resume = Resume.objects.get(user = user)
+    messages.info(request, f'You have accepted the application for {job.title} from {resume.first_name} {resume.surname}')
+    
+    # notification to user who applied
+    Notif.objects.create(
+        user = user,
+        content = f'CONGRATS! Your application for {job.title} has been accepted.'
+    )
+    
+    applied_jobs = ApplyJob.objects.filter(job = job)
+    context = {'job':job, 'applied_jobs':applied_jobs}
+    return render(request, 'job/all_applicants.html', context)
+
+#delete job
+def reject_job(request, app_pk):
+    application = ApplyJob.objects.get(pk=app_pk)
+    application.status = 'Declined'
+    application.save()
+    job = application.job
+    
+    user = application.user
+    resume = Resume.objects.get(user = user)
+    messages.info(request, f'You have rejected the application for {job.title} from {resume.first_name} {resume.surname}')
+    
+    # notification to user who applied
+    Notif.objects.create(
+        user = user,
+        content = f'Sorry:( . Your application for {job.title} has been rejected.'
+    )
+
+    applied_jobs = ApplyJob.objects.filter(job = job)
+    context = {'job':job, 'applied_jobs':applied_jobs}
+    return render(request, 'job/all_applicants.html', context)

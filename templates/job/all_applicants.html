@@ -16,35 +16,32 @@
                     <th scope="col">Job Position/Title</th>
                     <th scope="col">Application Date</th>
                     <th scope="col">Resume</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for applicant in applicants %}
+                {% for applied_job in applied_jobs %}
                 <tr>
-                    <td>{{applicant.user.resume.first_name}}</td>
-                    <td>{{applicant.user.resume.surname}}</td>
-                    <td>{{applicant.user.resume.location}}</td>
-                    <td>{{applicant.user.resume.title}}</td>
-                    <td>{{applicant.timestamp}}</td>
-                    {% if applicant.user.resume.upload_resume.url %}
+                    <td>{{applied_job.user.resume.first_name}}</td>
+                    <td>{{applied_job.user.resume.surname}}</td>
+                    <td>{{applied_job.user.resume.location}}</td>
+                    <td>{{applied_job.user.resume.title}}</td>
+                    <td>{{applied_job.timestamp}}</td>
+                    {% if applied_job.user.resume and applied_job.user.resume.upload_resume.url %}
                     <td><a target="_blank" href="{{applicant.user.resume.upload_resume.url}}"><small>Download Resume</small></a></td>
                     {% else %}
                     <td>Resume not uploaded</td>
+                    {% endif %}
+                    <td>{{applied_job.status}}</td>
+                    {% if not applied_job.job.is_available %}
+                        <td>Job is not active</td>
+                    {% elif applied_job.status == 'Pending' %}
+                        <td><a href="{% url 'accept-job' applied_job.pk %}"><span class="badge bg-success">Accept</span></a>
+                            <a href="{% url 'reject-job' applied_job.pk %}"><span class="badge bg-danger">Reject</span></a></td>
                     {% endif %}
                 </tr>
 
-                <!-- <tr>
-                    <td>{{applicant.first_name}}</td>
-                    <td>{{applicant.surname}}</td>
-                    <td>{{applicant.location}}</td>
-                    <td>{{applicant.job_title}}</td>
-                    <td>{{applicant.timestamp}}</td>
-                    {% if applicant.user.resume.resume_upload %}
-                    <td><a target="_blank" href="{{applicant.user.resume.upload_resume.url}}"><small>Download Resume</small></a></td>
-                    {% else %}
-                    <td>Resume not uploaded</td>
-                    {% endif %}
-                </tr> -->
                 {% endfor %}
             </tbody>
         </table>
